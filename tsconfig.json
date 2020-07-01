@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "lib": ["es2017"],
+    "outDir": "lib",
+    "removeComments": true,
+    "pretty": false
+  },
+  "typeAcquisition": {
+    "enable": true
+  }
+}
