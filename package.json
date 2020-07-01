@@ -2,10 +2,10 @@
   "name": "@njfiorello/tiny-cm",
   "version": "1.0.0",
   "description": "very simple cm for testing",
-  "main": "index.js",
+  "main": "lib/server.js",
   "private": true,
   "scripts": {
-    "prebuild": "rimraf lib",
+    "prebuild": "rimraf dist",
     "build": "tsc -p tsconfig.json",
     "test": "ts-node src/server.ts",
     "start": "node index.js"
