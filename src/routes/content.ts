@@ -35,10 +35,13 @@ function contentEndpoint(store: FileStore) {
   });
 
   /**
-   * Return a list of what's in the store
+   * Return a list of what's in the store.
    */
   router.get('', async (req, res) => {
-    res.status(200).json(store.list());
+    res.status(200).json(store.list().map(meta => ({
+      url: `${config.endpoint}/${encodeURIComponent(meta.entityId)}`,
+      ...meta,
+    })));
   });
 
   // POST /content
