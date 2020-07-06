@@ -9,8 +9,9 @@ import fakeAuthMiddleware from '../fake-auth-middleware';
 import config from '../config';
 
 /**
+ * API to access content store
  *
- * @param store
+ * @param store store to include
  */
 function contentEndpoint(store: FileStore) {
   const router = express.Router();
@@ -31,6 +32,13 @@ function contentEndpoint(store: FileStore) {
     res.setHeader('Content-Type', meta.mimeType);
     res.setHeader('x-original-filename', meta.fileName);
     res.sendFile(meta.contentPath, { maxAge: '365 days', immutable: true });
+  });
+
+  /**
+   * Return a list of what's in the store
+   */
+  router.get('', async (req, res) => {
+    res.status(200).json(store.list());
   });
 
   // POST /content

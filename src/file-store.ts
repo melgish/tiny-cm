@@ -188,4 +188,11 @@ export class FileStore {
     }
     return meta;
   }
+
+  /**
+   * Return a list of all values in the local store
+   */
+  list(): Meta[] {
+    return Object.values(this.metaData);
+  }
 }
