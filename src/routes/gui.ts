@@ -2,6 +2,7 @@ import express from 'express';
 import config from '../config';
 import { resolve, join } from 'path';
 import { existsSync } from 'fs';
+import { logger } from '../logger';
 
 /**
  * Returns GUI endpoint only if it was found
@@ -16,13 +17,13 @@ function guiEndpoint(): express.Router {
   }
 
   if (!existsSync(path)) {
-    console.debug(`Not serving ${path}. Not found`);
+    logger.debug(`Not serving ${path}. Not found`);
     return null;
   }
-  console.debug(`Serve ${path}.`);
+  logger.debug(`Serve ${path}.`);
   const index = join(path, 'index.html');
   if (!existsSync(index)) {
-    console.debug(`Not serving ${path}. No index.html`);
+    logger.debug(`Not serving ${path}. No index.html`);
     return null;
   }
 

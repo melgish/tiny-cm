@@ -4,6 +4,7 @@ import { v1 } from 'uuid';
 import { Meta, MetaMap } from './models/meta';
 
 const { readFile, writeFile, unlink, mkdir } = fsPromises;
+import { logger } from './logger';
 
 export class FileStore {
   /**
@@ -145,7 +146,7 @@ export class FileStore {
       await writeFile(this.metaPath, data);
 
       // Output some debug info
-      console.debug('FileStore', 'flush', `Wrote ${this.size} keys to store.`);
+      logger.debug(`Wrote ${this.size} keys to store.`);
     }
   }
 
@@ -156,19 +157,19 @@ export class FileStore {
     // Make sure the root path exists.
     if (!existsSync(this.dataPath)) {
       await mkdir(this.dataPath, { recursive: true });
-      console.info('FileStore', 'init', 'created', this.dataPath);
+      logger.info(`Created ${this.dataPath}.`);
     }
 
     // Make sure metadata file exists.
     if (!existsSync(this.metaPath)) {
       await this.flush(true);
-      console.info('FileStore', 'init', 'created', this.metaPath);
+      logger.info(`Created ${this.metaPath}.`);
     }
 
     // Read all metadata
     const data = await readFile(this.metaPath);
     this.metaData = JSON.parse(data.toString());
-    console.debug('FileStore', 'init', `Read ${this.size} keys from store.`);
+    logger.debug(`Read ${this.size} keys from store.`);
 
     // Update metadata on disk once per minute.
     this.interval = setInterval(this.flush.bind(this), 60000, false);
