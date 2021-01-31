@@ -13,7 +13,7 @@ import config from '../config';
  *
  * @param store store to include
  */
-function contentEndpoint(store: FileStore) {
+function contentEndpoint(store: FileStore): express.Router {
   const router = express.Router();
 
   // GET /movia/content/:entityId
@@ -115,12 +115,14 @@ function contentEndpoint(store: FileStore) {
   });
 
   // Anything else on this endpoint is 404
-  router.use((req, res, next) => res.status(404).json('Not Found'));
+  router.use((req, res): void => {
+    res.status(404).json('Not Found');
+  });
 
-  // Anything after that is an error
+  // 4 parameters required for express error handler.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   router.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.sendStatus(500);
+    res.sendStatus(400);
   });
 
   return router;

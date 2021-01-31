@@ -1,53 +1,57 @@
 import { createServer } from 'http';
 import express from 'express';
-import morgan from 'morgan';
 import { FileStore } from './file-store';
 import config from './config';
 
-import guiEndpoint from './routes/gui';
 import contentEndpoint from './routes/content';
 import authEndpoint from './routes/auth';
+import { logger, loggerMiddleware } from './logger';
+import cors from 'cors';
+import compression from 'compression';
 
-/**
- *
- * @param port
- * @param endpoint path to listen on default is content. Must not begin with /
- */
-async function run() {
-  // Setup logging and enable proxy handling
-  const app = express();
-  app.set('trust proxy', 'loopback, linklocal, uniquelocal');
-  app.use(morgan('dev'));
+const store = new FileStore(config.dataPath);
 
-  // attach the content endpoint
-  // Create the file store on the supplied dataPath.
-  const store = await new FileStore(config.dataPath).init();
-  app.use(`/${config.endpoint}`, contentEndpoint(store));
+// Configure Express
+const app = express();
+// Setup logging and enable proxy handling
+app.use(loggerMiddleware);
+app.set('trust proxy', 'loopback, linklocal, uniquelocal');
+app.use(cors());
+app.use(compression());
+app.options('*', cors());
+app.use(`/${config.endpoint}`, contentEndpoint(store));
+// Include fake authentication endpoint
+app.use('/auth', authEndpoint());
 
-  // if public folder exists, serve that as an angular application
-  const gui = guiEndpoint();
-  if (gui) {
-    app.use('/', gui);
-  }
 
-  app.use('/auth', authEndpoint());
+export const server = createServer(app);
+export const stop = async (): Promise<void> => {
+  logger.info('Beginning shutdown.');
+  server.close(
+    async (): Promise<void> => {
+      // Close the file store.
+      await store.close();
+      logger.info('Shutdown complete.');
+    }
+  );
+};
 
-  app.use((req, res, next) => res.sendStatus(404));
+export async function start(): Promise<void> {
+  // Wait for File store to initialize.
+  await store.init();
 
-  // Start the server
-  const server = createServer(app);
-  server.on('error', (e: any) => {
-    console.error(`Server Error: ${e.code}: ${e.message}`);
-    server.close();
-  });
-  server.on('close', () => store.close());
+  // Listen for terminal events to trigger shutdown.
+  process.on('SIGTERM', stop);
+  process.on('SIGINT', stop);
 
+  // Start the HTTP server.
   server.listen(config.port, () => {
-    console.log(
-      `Server Listening on http://0.0.0.0:${config.port}/${config.endpoint}/`
-    );
+    logger.info(`Listening on port ${config.port}`);
   });
 }
 
-// Run
-run();
+// Only start when launched directly
+/* istanbul ignore if */
+if (require.main === module) {
+  start();
+}

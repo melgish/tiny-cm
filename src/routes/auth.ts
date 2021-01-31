@@ -1,11 +1,11 @@
-import express from 'express';
+import { Router } from 'express';
 import { v1 } from 'uuid';
 
 /**
  *
  */
-function authEndpoint() {
-  const router = express.Router();
+function authEndpoint(): Router {
+  const router = Router();
 
   router.post('/realms/:realm/protocol/openid-connect/token', (req, res) => {
     res.status(200).json({

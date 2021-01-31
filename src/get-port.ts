@@ -7,7 +7,7 @@ import config from './config';
  *
  * @param req request to examine
  */
-export function getPort(req: express.Request) {
+export function getPort(req: express.Request): string {
   let localPort = req.get('x-forwarded-port');
   if (Array.isArray(localPort)) {
     localPort = localPort[0];

@@ -34,7 +34,7 @@ export class FileStore {
   /**
    * Gets the number of items in the store.
    */
-  get size() {
+  get size(): number {
     return Object.keys(this.metaData).length;
   }
 
@@ -62,7 +62,7 @@ export class FileStore {
   /**
    * Call to shutdown refresh timeer
    */
-  async close() {
+  async close(): Promise<void> {
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null;
@@ -112,7 +112,7 @@ export class FileStore {
    *
    * @returns Promise resolved on completion of delete
    */
-  async delete(entityId) {
+  async delete(entityId: string): Promise<void> {
     const meta = await this.find(entityId);
     if (meta) {
       await unlink(meta.contentPath);
@@ -129,7 +129,7 @@ export class FileStore {
    *  Resolves to metadata when found.
    *  Resolves to null when not found.
    */
-  async find(entityId): Promise<Meta> {
+  async find(entityId: string): Promise<Meta> {
     return this.metaData[entityId];
   }
 
@@ -137,7 +137,7 @@ export class FileStore {
    * Writes the current metadata instance to the store.
    * @param force forces write to disk.
    */
-  async flush(force = false) {
+  async flush(force = false): Promise<void> {
     if (this.dirty || force) {
       this.dirty = false;
 
@@ -152,7 +152,7 @@ export class FileStore {
   /**
    * Initializes the store into memory.
    */
-  async init() {
+  async init(): Promise<this> {
     // Make sure the root path exists.
     if (!existsSync(this.dataPath)) {
       await mkdir(this.dataPath, { recursive: true });
