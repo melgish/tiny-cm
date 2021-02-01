@@ -23,7 +23,6 @@ app.use(`/${config.endpoint}`, contentEndpoint(store));
 // Include fake authentication endpoint
 app.use('/auth', authEndpoint());
 
-
 export const server = createServer(app);
 export const stop = async (): Promise<void> => {
   logger.info('Beginning shutdown.');

@@ -1,9 +1,10 @@
 import { join, parse } from 'path';
-import { promises as fsPromises, createWriteStream, existsSync } from 'fs';
+import { existsSync, createWriteStream } from 'fs';
+import { readFile, writeFile, unlink, mkdir } from 'fs/promises';
+
 import { v1 } from 'uuid';
 import { Meta, MetaMap } from './models/meta';
 
-const { readFile, writeFile, unlink, mkdir } = fsPromises;
 import { logger } from './logger';
 
 export class FileStore {

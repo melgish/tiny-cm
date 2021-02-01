@@ -18,5 +18,5 @@ export interface Meta {
  * Lookup table for images
  */
 export interface MetaMap {
-  [entityId:string]: Meta;
+  [entityId: string]: Meta;
 }

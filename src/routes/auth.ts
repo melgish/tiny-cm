@@ -10,7 +10,7 @@ function authEndpoint(): Router {
   router.post('/realms/:realm/protocol/openid-connect/token', (req, res) => {
     res.status(200).json({
       token_type: 'bearer',
-      access_token: `${v1()}-${req.params.realm}`
+      access_token: `${v1()}-${req.params.realm}`,
     });
   });
 

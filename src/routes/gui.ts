@@ -34,7 +34,7 @@ function guiEndpoint(): express.Router {
       return res.sendFile(index);
     }
     next();
-  })
+  });
 
   return router;
 }

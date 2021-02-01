@@ -26,7 +26,7 @@ class Config {
   /**
    * Path to angular application to serve along side api
    */
-  readonly ngApplication: string = (env.NG_APP ? resolve(env.NG_APP) : '');
+  readonly ngApplication: string = env.NG_APP ? resolve(env.NG_APP) : '';
 }
 
 export default new Config();

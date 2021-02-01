@@ -38,10 +38,12 @@ function contentEndpoint(store: FileStore): express.Router {
    * Return a list of what's in the store.
    */
   router.get('', fakeAuthMiddleware, async (req, res) => {
-    res.status(200).json(store.list().map(meta => ({
-      url: `${config.endpoint}/${encodeURIComponent(meta.entityId)}`,
-      ...meta,
-    })));
+    res.status(200).json(
+      store.list().map((meta) => ({
+        url: `${config.endpoint}/${encodeURIComponent(meta.entityId)}`,
+        ...meta,
+      }))
+    );
   });
 
   // POST /content
