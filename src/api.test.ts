@@ -72,21 +72,10 @@ describe('api', () => {
           .end(done);
       });
     });
-
-    describe('when a single file is uploaded', () => {
-      it('should respond with 201', (done) => {
-        supertest(app)
-          .post('/content')
-          .attach('file', 'docs/sample.txt', 'sample.txt')
-          .expect(201)
-          .expect('Location', /content\/uuid\:/)
-          .end(done);
-      });
-    });
   });
 
-  describe('when multiple files are uploaded', () => {
-    it('should respond with 201', (done) => {
+  describe('when files are uploaded', () => {
+    it('should respond with 200', (done) => {
       supertest(app)
         .post('/content')
         .attach('file', 'docs/sample.txt', 'sample.txt')

@@ -4,6 +4,7 @@ import Busboy from 'busboy';
 
 import { Meta } from './meta';
 import { FileStore } from './file-store';
+import { resolve } from 'path';
 
 /**
  * API to access content store
@@ -42,11 +43,10 @@ export const api = (store: FileStore): Router => {
         // Wait for all the promises to be resolved.
         const results = await Promise.all(promises);
         const uploads = results.map((meta) => ({
-          location: `${req.baseUrl}/${meta.entityId}`,
-          id: meta.entityId,
-          mimeType: meta.mimeType,
-          fileName: meta.fileName,
-          encoding: meta.encoding,
+          url: `${req.baseUrl}/${meta.entityId}`,
+          ...meta,
+          // Don't send content path to client.
+          contentPath: undefined
         }));
 
         // link: `/content/${encodeURIComponent(meta.entityId)}`,
@@ -63,14 +63,10 @@ export const api = (store: FileStore): Router => {
           });
         }
 
-        if (uploads.length === 1) {
-          res.setHeader('Location', uploads[0].location);
-          return res.status(201).json({
-            statusCode: 201,
-            ...uploads[0],
-          });
-        }
-        return res.status(200).json(uploads);
+        return res.status(200).json({
+          statusCode: 200,
+          items: uploads
+        });
       });
 
       // Pipe the response into the handler
@@ -83,6 +79,17 @@ export const api = (store: FileStore): Router => {
     }
   });
 
+  /**
+   * Return a list of what's in the store.
+   */
+  route.get('/', async (req, res) => {
+    res.status(200).json(
+      store.list().map((meta) => ({
+        url: `${req.baseUrl}/${meta.entityId}`,
+        ...meta,
+      }))
+    );
+  });
   // GET //content/:entityId
   // Should return the content (file) for the matching entity.
   // Content-Type should be set to original mimeType captured on upload.
@@ -98,20 +105,10 @@ export const api = (store: FileStore): Router => {
     // set correct mime type and return the file
     res.setHeader('Content-Type', meta.mimeType);
     res.setHeader('x-original-filename', meta.fileName);
-    res.sendFile(meta.contentPath, { maxAge: '365 days', immutable: true });
+    const fullPath = resolve(meta.contentPath);
+    res.sendFile(fullPath, { maxAge: '365 days', immutable: true });
   });
 
-  /**
-   * Return a list of what's in the store.
-   */
-  route.get('/', async (req, res) => {
-    res.status(200).json(
-      store.list().map((meta) => ({
-        url: `/content/${encodeURIComponent(meta.entityId)}`,
-        ...meta,
-      }))
-    );
-  });
 
   //
   // DELETE /content/:entityId

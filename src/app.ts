@@ -1,7 +1,7 @@
 import { createServer } from 'http';
 import express from 'express';
 import { FileStore } from './file-store';
-
+import { api } from './api'
 
 import { logger, loggerMiddleware } from './logger';
 import cors from 'cors';
@@ -22,6 +22,7 @@ app.set('trust proxy', 'loopback, linklocal, uniquelocal');
 app.use(cors());
 app.use(compression());
 app.options('*', cors());
+app.use('/content', api(store))
 // app.use(`/content`, contentEndpoint(store));
 
 
