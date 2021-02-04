@@ -1,9 +1,11 @@
 import { join, parse } from 'path';
-import { promises as fsPromises, createWriteStream, existsSync } from 'fs';
-import { v1 } from 'uuid';
-import { Meta, MetaMap } from './models/meta';
+import { existsSync, createWriteStream } from 'fs';
+import { readFile, writeFile, unlink, mkdir } from 'fs/promises';
 
-const { readFile, writeFile, unlink, mkdir } = fsPromises;
+import { v1 } from 'uuid';
+import { Meta, MetaMap } from './meta';
+
+import { logger } from './logger';
 
 export class FileStore {
   /**
@@ -14,12 +16,12 @@ export class FileStore {
   /**
    * Meta path is a JSON file containing all the metadata.
    */
-  private readonly metaPath: string;
+  protected metaPath: string;
 
   /**
    * Holds the metadata in memory.
    */
-  private metaData: MetaMap;
+  protected metaData: MetaMap;
 
   /**
    * Tracks when metaData file requires flushing to disk.
@@ -34,7 +36,7 @@ export class FileStore {
   /**
    * Gets the number of items in the store.
    */
-  get size() {
+  get size(): number {
     return Object.keys(this.metaData).length;
   }
 
@@ -46,7 +48,7 @@ export class FileStore {
   }
 
   /**
-   * Consstruct instance of a store.
+   * Construct instance of a store.
    *
    * @param dataPath Path to files.  Defaults to temporary storage if not supplied.
    */
@@ -57,17 +59,6 @@ export class FileStore {
     this.metaData = {};
     this.dirty = false;
     this.interval = null;
-  }
-
-  /**
-   * Call to shutdown refresh timeer
-   */
-  async close() {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
-    }
-    await this.flush(true);
   }
 
   /**
@@ -112,7 +103,7 @@ export class FileStore {
    *
    * @returns Promise resolved on completion of delete
    */
-  async delete(entityId) {
+  async delete(entityId: string): Promise<void> {
     const meta = await this.find(entityId);
     if (meta) {
       await unlink(meta.contentPath);
@@ -129,49 +120,63 @@ export class FileStore {
    *  Resolves to metadata when found.
    *  Resolves to null when not found.
    */
-  async find(entityId): Promise<Meta> {
+  async find(entityId: string): Promise<Meta> {
     return this.metaData[entityId];
   }
 
   /**
+   * Call on app exit to shutdown save timer.
+   */
+  async flush(): Promise<void> {
+    clearInterval(this.interval);
+    this.interval = null;
+
+    await this.save(true);
+  }
+
+  /**
    * Writes the current metadata instance to the store.
+   *
    * @param force forces write to disk.
    */
-  async flush(force = false) {
+  protected async save(force: boolean): Promise<void> {
     if (this.dirty || force) {
-      this.dirty = false;
-
-      const data = JSON.stringify(this.metaData);
-      await writeFile(this.metaPath, data);
-
-      // Output some debug info
-      console.debug('FileStore', 'flush', `Wrote ${this.size} keys to store.`);
+      try {
+        const data = JSON.stringify(this.metaData);
+        await writeFile(this.metaPath, data);
+      } catch (error) {
+        logger.error(`Failed to write "${this.metaPath}".\n${error}`);
+      } finally {
+        this.dirty = false;
+      }
     }
   }
 
   /**
    * Initializes the store into memory.
    */
-  async init() {
+  async init(saveSeconds: number): Promise<this> {
     // Make sure the root path exists.
     if (!existsSync(this.dataPath)) {
       await mkdir(this.dataPath, { recursive: true });
-      console.info('FileStore', 'init', 'created', this.dataPath);
+      logger.info(`Created ${this.dataPath}.`);
     }
 
     // Make sure metadata file exists.
     if (!existsSync(this.metaPath)) {
-      await this.flush(true);
-      console.info('FileStore', 'init', 'created', this.metaPath);
+      await this.save(true);
+      logger.info(`Created ${this.metaPath}.`);
     }
 
     // Read all metadata
     const data = await readFile(this.metaPath);
     this.metaData = JSON.parse(data.toString());
-    console.debug('FileStore', 'init', `Read ${this.size} keys from store.`);
+    logger.debug(`Read ${this.size} keys from store.`);
 
-    // Update metadata on disk once per minute.
-    this.interval = setInterval(this.flush.bind(this), 60000, false);
+    saveSeconds = saveSeconds * 1000;
+    if (saveSeconds) {
+      this.interval = setInterval(this.save.bind(this), saveSeconds, false);
+    }
 
     return this;
   }
