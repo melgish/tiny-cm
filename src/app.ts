@@ -1,27 +1,29 @@
 import { createServer } from 'http';
 import express from 'express';
 import { FileStore } from './file-store';
-import config from './config';
 
-import contentEndpoint from './routes/content';
-import authEndpoint from './routes/auth';
+
 import { logger, loggerMiddleware } from './logger';
 import cors from 'cors';
 import compression from 'compression';
 
-const store = new FileStore(config.dataPath);
+//  Allow environment to change default behavior
+const port = Number(process.env.HTTP_PORT || 3000);
+const dataRoot = process.env.DATA_ROOT || '/app/data';
+const saveSeconds = Number(process.env.SAVE_SECONDS || 60);
+
+export const store = new FileStore(dataRoot);
 
 // Configure Express
-const app = express();
+export const app = express();
 // Setup logging and enable proxy handling
 app.use(loggerMiddleware);
 app.set('trust proxy', 'loopback, linklocal, uniquelocal');
 app.use(cors());
 app.use(compression());
 app.options('*', cors());
-app.use(`/${config.endpoint}`, contentEndpoint(store));
-// Include fake authentication endpoint
-app.use('/auth', authEndpoint());
+// app.use(`/content`, contentEndpoint(store));
+
 
 export const server = createServer(app);
 export const stop = async (): Promise<void> => {
@@ -29,7 +31,7 @@ export const stop = async (): Promise<void> => {
   server.close(
     async (): Promise<void> => {
       // Close the file store.
-      await store.close();
+      await store.flush();
       logger.info('Shutdown complete.');
     }
   );
@@ -37,15 +39,15 @@ export const stop = async (): Promise<void> => {
 
 export async function start(): Promise<void> {
   // Wait for File store to initialize.
-  await store.init();
+  await store.init(saveSeconds);
 
   // Listen for terminal events to trigger shutdown.
   process.on('SIGTERM', stop);
   process.on('SIGINT', stop);
 
   // Start the HTTP server.
-  server.listen(config.port, () => {
-    logger.info(`Listening on port ${config.port}`);
+  server.listen(port, () => {
+    logger.info(`Listening on port ${port}`);
   });
 }
 

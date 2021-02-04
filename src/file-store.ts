@@ -3,7 +3,7 @@ import { existsSync, createWriteStream } from 'fs';
 import { readFile, writeFile, unlink, mkdir } from 'fs/promises';
 
 import { v1 } from 'uuid';
-import { Meta, MetaMap } from './models/meta';
+import { Meta, MetaMap } from './meta';
 
 import { logger } from './logger';
 
@@ -16,12 +16,12 @@ export class FileStore {
   /**
    * Meta path is a JSON file containing all the metadata.
    */
-  private readonly metaPath: string;
+  protected metaPath: string;
 
   /**
    * Holds the metadata in memory.
    */
-  private metaData: MetaMap;
+  protected metaData: MetaMap;
 
   /**
    * Tracks when metaData file requires flushing to disk.
@@ -48,7 +48,7 @@ export class FileStore {
   }
 
   /**
-   * Consstruct instance of a store.
+   * Construct instance of a store.
    *
    * @param dataPath Path to files.  Defaults to temporary storage if not supplied.
    */
@@ -59,17 +59,6 @@ export class FileStore {
     this.metaData = {};
     this.dirty = false;
     this.interval = null;
-  }
-
-  /**
-   * Call to shutdown refresh timeer
-   */
-  async close(): Promise<void> {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
-    }
-    await this.flush(true);
   }
 
   /**
@@ -136,25 +125,37 @@ export class FileStore {
   }
 
   /**
+   * Call on app exit to shutdown save timer.
+   */
+  async flush(): Promise<void> {
+    clearInterval(this.interval);
+    this.interval = null;
+
+    await this.save(true);
+  }
+
+  /**
    * Writes the current metadata instance to the store.
+   *
    * @param force forces write to disk.
    */
-  async flush(force = false): Promise<void> {
+  protected async save(force: boolean): Promise<void> {
     if (this.dirty || force) {
-      this.dirty = false;
-
-      const data = JSON.stringify(this.metaData);
-      await writeFile(this.metaPath, data);
-
-      // Output some debug info
-      logger.debug(`Wrote ${this.size} keys to store.`);
+      try {
+        const data = JSON.stringify(this.metaData);
+        await writeFile(this.metaPath, data);
+      } catch (error) {
+        logger.error(`Failed to write "${this.metaPath}".\n${error}`);
+      } finally {
+        this.dirty = false;
+      }
     }
   }
 
   /**
    * Initializes the store into memory.
    */
-  async init(): Promise<this> {
+  async init(saveSeconds: number): Promise<this> {
     // Make sure the root path exists.
     if (!existsSync(this.dataPath)) {
       await mkdir(this.dataPath, { recursive: true });
@@ -163,7 +164,7 @@ export class FileStore {
 
     // Make sure metadata file exists.
     if (!existsSync(this.metaPath)) {
-      await this.flush(true);
+      await this.save(true);
       logger.info(`Created ${this.metaPath}.`);
     }
 
@@ -172,8 +173,10 @@ export class FileStore {
     this.metaData = JSON.parse(data.toString());
     logger.debug(`Read ${this.size} keys from store.`);
 
-    // Update metadata on disk once per minute.
-    this.interval = setInterval(this.flush.bind(this), 60000, false);
+    saveSeconds = saveSeconds * 1000;
+    if (saveSeconds) {
+      this.interval = setInterval(this.save.bind(this), saveSeconds, false);
+    }
 
     return this;
   }
