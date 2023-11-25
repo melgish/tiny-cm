@@ -1,6 +1,6 @@
-import { join, parse } from 'path';
-import { existsSync, createWriteStream } from 'fs';
-import { readFile, writeFile, unlink, mkdir } from 'fs/promises';
+import { join, parse } from 'node:path';
+import { existsSync, createWriteStream } from 'node:fs';
+import { readFile, writeFile, unlink, mkdir } from 'node:fs/promises';
 
 import { v1 } from 'uuid';
 import { Meta, MetaMap } from './meta';
@@ -75,7 +75,7 @@ export class FileStore {
     fileName: string,
     encoding: string,
     mimeType: string,
-    entityId?: string
+    entityId?: string,
   ): Promise<Meta> {
     // There is no guarantee that filenames posted will be unique, so use a
     // UUID to store the file. Preserve the file extension for convenience.

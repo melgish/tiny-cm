@@ -1,10 +1,10 @@
+import { resolve } from 'node:path';
 import { Router } from 'express';
 import { v1 } from 'uuid';
-import Busboy from 'busboy';
+import busboy from 'busboy';
 
 import { Meta } from './meta';
 import { FileStore } from './file-store';
-import { resolve } from 'path';
 
 /**
  * API to access content store
@@ -28,25 +28,26 @@ export const api = (store: FileStore): Router => {
   route.post(`/`, async (req, res) => {
     const promises: Promise<Meta>[] = [];
     try {
-      const busboy = new Busboy({ headers: req.headers });
+      const bb = busboy({ headers: req.headers });
 
       // When file header is encountered...
-      busboy.on('file', async (fieldName, file, fileName, encoding, mimeType) =>
+      bb.on('file', async (fieldName, file, info) => {
+        const { filename, encoding, mimeType } = info;
         // Save the file directly to store.
         promises.push(
-          store.create(file, fileName, encoding, mimeType, `uuid:${v1()}`)
-        )
-      );
+          store.create(file, filename, encoding, mimeType, `uuid:${v1()}`),
+        );
+      });
 
       // When all the file(s) has been read, create the entities
-      busboy.on('finish', async () => {
+      bb.on('finish', async () => {
         // Wait for all the promises to be resolved.
         const results = await Promise.all(promises);
         const uploads = results.map((meta) => ({
           url: `${req.baseUrl}/${meta.entityId}`,
           ...meta,
           // Don't send content path to client.
-          contentPath: undefined
+          contentPath: undefined,
         }));
 
         // link: `/content/${encodeURIComponent(meta.entityId)}`,
@@ -65,16 +66,16 @@ export const api = (store: FileStore): Router => {
 
         return res.status(200).json({
           statusCode: 200,
-          items: uploads
+          items: uploads,
         });
       });
 
       // Pipe the response into the handler
-      return req.pipe(busboy);
+      return req.pipe(bb);
     } catch (err) {
       return res.status(400).json({
         statusCode: 400,
-        message: `Bad Request: ${err.message}`
+        message: `Bad Request: ${err.message}`,
       });
     }
   });
@@ -87,7 +88,7 @@ export const api = (store: FileStore): Router => {
       store.list().map((meta) => ({
         url: `${req.baseUrl}/${meta.entityId}`,
         ...meta,
-      }))
+      })),
     );
   });
   // GET //content/:entityId
@@ -109,7 +110,6 @@ export const api = (store: FileStore): Router => {
     res.sendFile(fullPath, { maxAge: '365 days', immutable: true });
   });
 
-
   //
   // DELETE /content/:entityId
   // Deletes image from the CM system.
@@ -128,7 +128,7 @@ export const api = (store: FileStore): Router => {
   route.use((req, res): void => {
     res.status(404).json({
       statusCode: 404,
-      message: 'Not Found'
+      message: 'Not Found',
     });
   });
 
@@ -137,7 +137,7 @@ export const api = (store: FileStore): Router => {
   route.use((err, req, res, next) => {
     res.status(400).json({
       statusCode: 400,
-      message: 'Bad Request'
+      message: 'Bad Request',
     });
   });
 

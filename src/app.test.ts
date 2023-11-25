@@ -21,7 +21,11 @@ describe('app', () => {
 
   describe('start', () => {
     it('should start the listener', async () => {
-      replace(server, 'listen', fake((port, fn) => fn()));
+      replace(
+        server,
+        'listen',
+        fake((port, fn) => fn()),
+      );
       stub(store, 'init').resolves();
 
       await start();
