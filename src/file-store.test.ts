@@ -1,4 +1,8 @@
-import { existsSync } from 'fs';
+import { existsSync } from 'node:fs';
+import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+
 import { Readable } from 'stream';
 
 import { logger } from './logger';
@@ -6,7 +10,7 @@ import { Meta, MetaMap } from './meta';
 
 import { FileStore } from './file-store';
 
-import mock from 'mock-fs';
+
 import { expect } from 'chai';
 import { SinonSpy, SinonStub, spy, stub } from 'sinon';
 
@@ -22,28 +26,34 @@ class TestFileStore extends FileStore {
 }
 
 describe('FileStore', () => {
+  let tmpDir: string;
+  let contentPath: string;
   let store: TestFileStore;
-  beforeEach(async () => {
-    mock({
-      data: {
-        'metadata.json': JSON.stringify({
-          uuid812: {
-            entityId: 'uuid812',
-            contentPath: 'data/uuid812.txt',
-            mimeType: 'text/plain',
-            encoding: 'utf-8',
-            fileName: 'test-file.txt',
-          },
-        }),
-        'uuid812.txt': 'THIS IS A TEST FILE',
-      },
-    });
 
-    store = new TestFileStore('data');
+  beforeEach(async () => {
+    // Create store in temporary folder with 1 file.
+    tmpDir = await mkdtemp(join(tmpdir(), 'tiny-cm-test'));
+    contentPath = join(tmpDir, 'uuid812.txt'),
+    await writeFile(contentPath, 'THIS IS A TEST FILE', 'utf-8');
+    await writeFile(join(tmpDir, 'metadata.json'), JSON.stringify({
+      uuid812: {
+        entityId: 'uuid812',
+        contentPath,
+        mimeType: 'text/plain',
+        encoding: 'utf-8',
+        fileName: 'test-file.txt'
+      }
+    }), 'utf-8');
+
+    store = new TestFileStore(tmpDir);
     await store.init(0);
   });
 
-  afterEach(() => mock.restore());
+  afterEach(async () => {
+    if (tmpDir) {
+      await rm(tmpDir, { recursive: true });
+    }
+  });
 
   describe('size (getter)', () => {
     it('should return number items in store', () => {
@@ -55,7 +65,7 @@ describe('FileStore', () => {
     it('should return array of metadata', () => {
       expect(store.values).to.eql([{
         entityId: 'uuid812',
-        contentPath: 'data/uuid812.txt',
+        contentPath,
         mimeType: 'text/plain',
         encoding: 'utf-8',
         fileName: 'test-file.txt',
@@ -88,8 +98,7 @@ describe('FileStore', () => {
       it('should delete the file', async () => {
         await store.delete('uuid812');
 
-        const out = existsSync('data/uuid812.txt');
-        expect(out).to.be.false;
+        expect(existsSync(contentPath)).to.be.false;
       });
     });
 
@@ -128,7 +137,7 @@ describe('FileStore', () => {
       // Testing the underlying behavior o
       it('should log the failure', async () => {
         // hack the style into an invalid state
-        store.metaPath = null;
+        store.metaPath = null!;
 
         await store.flush();
 
@@ -143,16 +152,14 @@ describe('FileStore', () => {
     afterEach(async () => await store.flush());
 
     describe('when folder  does not exist', () => {
-      beforeEach(() => {
-        // Re-mock to empty file system
-        mock({});
+      beforeEach(async () => {
+        await rm(tmpDir, { recursive: true });
       });
 
       it('should init empty metadata', async () => {
-        expect(existsSync('data')).to.be.false;
+        expect(existsSync(store.metaPath)).to.be.false;
         await store.init(1);
-
-        expect(existsSync('data')).to.be.true;
+        expect(existsSync(store.metaPath)).to.be.true;
       });
     });
   });
@@ -161,7 +168,7 @@ describe('FileStore', () => {
     it('should return array of metadata', () => {
       expect(store.list()).to.eql([{
         entityId: 'uuid812',
-        contentPath: 'data/uuid812.txt',
+        contentPath,
         mimeType: 'text/plain',
         encoding: 'utf-8',
         fileName: 'test-file.txt',
@@ -172,7 +179,7 @@ describe('FileStore', () => {
   describe('save', () => {
     describe('when data is clean', () => {
       it('should not save', async () => {
-        mock({});
+        await rm(store.metaPath, { recursive: true });
 
         await store.save(false);
 
