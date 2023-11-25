@@ -28,7 +28,7 @@ describe('api', () => {
       'testing.txt',
       'utf-8',
       'text/plain',
-      'uuid812'
+      'uuid812',
     );
 
     // Create a simplified express app.
@@ -88,10 +88,10 @@ describe('api', () => {
   describe('GET /content', () => {
     it('should return a list of available files', (done) => {
       supertest(app)
-      .get('/content')
-      .expect(200)
-      .expect('Content-Type', /json/)
-      .end(done);
+        .get('/content')
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end(done);
     });
   });
 
@@ -115,7 +115,7 @@ describe('api', () => {
         supertest(app)
           .get('/content/uuid812')
           .expect(200)
-          .expect(req => req.body = 'Simple Test Document')
+          .expect((req) => (req.body = 'Simple Test Document'))
           .end(done);
       });
     });
@@ -124,21 +124,14 @@ describe('api', () => {
   describe('DELETE /content/entityId', () => {
     describe('when file exists', () => {
       it('should respond with 204', (done) => {
-        supertest(app)
-          .delete(`/content/uuid812`)
-          .expect(204)
-          .end(done);
+        supertest(app).delete(`/content/uuid812`).expect(204).end(done);
       });
     });
 
     describe('when file does not exist', () => {
       it('should respond with 204', (done) => {
-        supertest(app)
-          .delete(`/content/guid812`)
-          .expect(204)
-          .end(done);
+        supertest(app).delete(`/content/guid812`).expect(204).end(done);
       });
     });
   });
 });
-
