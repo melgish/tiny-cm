@@ -1,7 +1,7 @@
 import { createServer } from 'http';
 import express from 'express';
 import { FileStore } from './file-store';
-import { api } from './api'
+import { api } from './api';
 
 import { logger, loggerMiddleware } from './logger';
 import cors from 'cors';
@@ -22,20 +22,17 @@ app.set('trust proxy', 'loopback, linklocal, uniquelocal');
 app.use(cors());
 app.use(compression());
 app.options('*', cors());
-app.use('/content', api(store))
+app.use('/content', api(store));
 // app.use(`/content`, contentEndpoint(store));
-
 
 export const server = createServer(app);
 export const stop = async (): Promise<void> => {
   logger.info('Beginning shutdown.');
-  server.close(
-    async (): Promise<void> => {
-      // Close the file store.
-      await store.flush();
-      logger.info('Shutdown complete.');
-    }
-  );
+  server.close(async (): Promise<void> => {
+    // Close the file store.
+    await store.flush();
+    logger.info('Shutdown complete.');
+  });
 };
 
 export async function start(): Promise<void> {
