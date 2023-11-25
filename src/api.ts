@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { v1 } from 'uuid';
-import Busboy from 'busboy';
+import busboy from 'busboy';
 
 import { Meta } from './meta';
 import { FileStore } from './file-store';
@@ -28,18 +28,19 @@ export const api = (store: FileStore): Router => {
   route.post(`/`, async (req, res) => {
     const promises: Promise<Meta>[] = [];
     try {
-      const busboy = new Busboy({ headers: req.headers });
+      const bb = busboy({ headers: req.headers });
 
       // When file header is encountered...
-      busboy.on('file', async (fieldName, file, fileName, encoding, mimeType) =>
+      bb.on('file', async (fieldName, file, info) => {
+      const { filename, encoding, mimeType } = info
         // Save the file directly to store.
         promises.push(
-          store.create(file, fileName, encoding, mimeType, `uuid:${v1()}`)
+          store.create(file, filename, encoding, mimeType, `uuid:${v1()}`)
         )
-      );
+      });
 
       // When all the file(s) has been read, create the entities
-      busboy.on('finish', async () => {
+      bb.on('finish', async () => {
         // Wait for all the promises to be resolved.
         const results = await Promise.all(promises);
         const uploads = results.map((meta) => ({
@@ -70,7 +71,7 @@ export const api = (store: FileStore): Router => {
       });
 
       // Pipe the response into the handler
-      return req.pipe(busboy);
+      return req.pipe(bb);
     } catch (err) {
       return res.status(400).json({
         statusCode: 400,
