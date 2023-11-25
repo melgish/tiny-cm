@@ -1,7 +1,7 @@
 /**
  * Metadata associated with an image/content item
  */
-export interface Meta {
+export type Meta = {
   // entityId of content
   entityId?: string;
   // path to content file
@@ -17,6 +17,6 @@ export interface Meta {
 /**
  * Lookup table for images
  */
-export interface MetaMap {
+export type MetaMap = {
   [entityId: string]: Meta;
 }
