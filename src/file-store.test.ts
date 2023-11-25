@@ -31,7 +31,10 @@ describe('FileStore', () => {
   let store: TestFileStore;
 
   beforeEach(async () => {
-    // Create store in temporary folder with 1 file.
+    // After upgrade, using mock-fs for FileStore tests stopped working.
+    // Instead use a real temporary folder.
+    //
+    // Pre-load it with data
     tmpDir = await mkdtemp(join(tmpdir(), 'tiny-cm-test'));
     contentPath = join(tmpDir, 'uuid812.txt'),
     await writeFile(contentPath, 'THIS IS A TEST FILE', 'utf-8');
