@@ -10,7 +10,6 @@ import { Meta, MetaMap } from './meta';
 
 import { FileStore } from './file-store';
 
-
 import { expect } from 'chai';
 import { SinonSpy, SinonStub, spy, stub } from 'sinon';
 
@@ -36,17 +35,21 @@ describe('FileStore', () => {
     //
     // Pre-load it with data
     tmpDir = await mkdtemp(join(tmpdir(), 'tiny-cm-test'));
-    contentPath = join(tmpDir, 'uuid812.txt'),
-    await writeFile(contentPath, 'THIS IS A TEST FILE', 'utf-8');
-    await writeFile(join(tmpDir, 'metadata.json'), JSON.stringify({
-      uuid812: {
-        entityId: 'uuid812',
-        contentPath,
-        mimeType: 'text/plain',
-        encoding: 'utf-8',
-        fileName: 'test-file.txt'
-      }
-    }), 'utf-8');
+    (contentPath = join(tmpDir, 'uuid812.txt')),
+      await writeFile(contentPath, 'THIS IS A TEST FILE', 'utf-8');
+    await writeFile(
+      join(tmpDir, 'metadata.json'),
+      JSON.stringify({
+        uuid812: {
+          entityId: 'uuid812',
+          contentPath,
+          mimeType: 'text/plain',
+          encoding: 'utf-8',
+          fileName: 'test-file.txt',
+        },
+      }),
+      'utf-8',
+    );
 
     store = new TestFileStore(tmpDir);
     await store.init(0);
@@ -66,13 +69,15 @@ describe('FileStore', () => {
 
   describe('values (getter)', () => {
     it('should return array of metadata', () => {
-      expect(store.values).to.eql([{
-        entityId: 'uuid812',
-        contentPath,
-        mimeType: 'text/plain',
-        encoding: 'utf-8',
-        fileName: 'test-file.txt',
-      }]);
+      expect(store.values).to.eql([
+        {
+          entityId: 'uuid812',
+          contentPath,
+          mimeType: 'text/plain',
+          encoding: 'utf-8',
+          fileName: 'test-file.txt',
+        },
+      ]);
     });
   });
 
@@ -169,13 +174,15 @@ describe('FileStore', () => {
 
   describe('list', () => {
     it('should return array of metadata', () => {
-      expect(store.list()).to.eql([{
-        entityId: 'uuid812',
-        contentPath,
-        mimeType: 'text/plain',
-        encoding: 'utf-8',
-        fileName: 'test-file.txt',
-      }]);
+      expect(store.list()).to.eql([
+        {
+          entityId: 'uuid812',
+          contentPath,
+          mimeType: 'text/plain',
+          encoding: 'utf-8',
+          fileName: 'test-file.txt',
+        },
+      ]);
     });
   });
 
@@ -203,7 +210,7 @@ describe('FileStore', () => {
           contentPath: 'data/guido.txt',
           encoding: 'utf-8',
           fileName: 'guido.txt',
-          mimeType: 'text/plain'
+          mimeType: 'text/plain',
         };
 
         expect(store.update(meta)).to.equal(meta);
@@ -217,7 +224,7 @@ describe('FileStore', () => {
           contentPath: 'data/guido.txt',
           encoding: 'utf-8',
           fileName: 'guido.txt',
-          mimeType: 'text/plain'
+          mimeType: 'text/plain',
         };
 
         expect(store.update(meta)).to.equal(meta);

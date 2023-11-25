@@ -1,10 +1,10 @@
+import { resolve } from 'node:path';
 import { Router } from 'express';
 import { v1 } from 'uuid';
 import busboy from 'busboy';
 
 import { Meta } from './meta';
 import { FileStore } from './file-store';
-import { resolve } from 'path';
 
 /**
  * API to access content store

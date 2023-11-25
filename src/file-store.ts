@@ -1,6 +1,6 @@
-import { join, parse } from 'path';
-import { existsSync, createWriteStream } from 'fs';
-import { readFile, writeFile, unlink, mkdir } from 'fs/promises';
+import { join, parse } from 'node:path';
+import { existsSync, createWriteStream } from 'node:fs';
+import { readFile, writeFile, unlink, mkdir } from 'node:fs/promises';
 
 import { v1 } from 'uuid';
 import { Meta, MetaMap } from './meta';

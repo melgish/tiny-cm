@@ -12,11 +12,11 @@ export type Meta = {
   encoding: string;
   // file name used for upload
   fileName: string;
-}
+};
 
 /**
  * Lookup table for images
  */
 export type MetaMap = {
   [entityId: string]: Meta;
-}
+};
