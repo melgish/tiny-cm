@@ -25,3 +25,14 @@ Run npm start to launch service
 Run npm test to run via ts-node
 
 `npm test`
+
+## Configuration
+
+The following envrionment variables are avalable to control application behavior.
+
+| Name                | Default   | Description                    |
+| ------------------- | --------- | ------------------------------ |
+| HTTP_PORT           | 3000      | Listen port.                   |
+| DATA_ROOT           | /app/data | Folder where data is saved.    |
+| SAVE_SECONDS        | 60        | Max delay before save to disk. |
+| REQUESTS_PER_MINUTE | 60        | Configures rate limiting.      |
