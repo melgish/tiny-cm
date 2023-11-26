@@ -2,8 +2,6 @@
 ![Last commit](https://img.shields.io/github/last-commit/melgish/tiny-cm)
 ![Build Status](https://github.com/melgish/tiny-cm/workflows/build/badge.svg)
 [![Coverage](https://codecov.io/gh/melgish/tiny-cm/branch/main/graph/badge.svg?token=40H9P8IZRC)](https://codecov.io/gh/melgish/tiny-cm)
-![Dependencies](https://david-dm.org/melgish/tiny-cm.svg)
-![Dev Dependencies](https://david-dm.org/melgish/tiny-cm/dev-status.svg)
 [![License](https://shields.io/github/license/melgish/tiny-cm)](./LICENSE)
 
 Warning: Use only for testing
