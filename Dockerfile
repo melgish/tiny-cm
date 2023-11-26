@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:21-alpine AS base
 # Create app folder tree and grant permissions to node user.
 RUN mkdir -p /app/service /app/data/ \
  && chown -R node:node /app
