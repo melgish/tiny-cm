@@ -91,6 +91,7 @@ export const api = (store: FileStore): Router => {
       })),
     );
   });
+
   // GET //content/:entityId
   // Should return the content (file) for the matching entity.
   // Content-Type should be set to original mimeType captured on upload.
