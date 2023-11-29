@@ -10,7 +10,9 @@
     "format": "prettier src --write",
     "start": "npm run build && DATA_ROOT=./data node .",
     "docker": "docker build . -t tiny-cm-service:latest",
-    "lint": "eslint src --ext .ts"
+    "lint": "eslint src --ext .ts",
+    "ci:build": "tsc -p tsconfig.json",
+    "ci:test": "nyc mocha"
   },
   "keywords": [
     "licit"
@@ -84,7 +86,7 @@
     "reporter": [
       "lcovonly",
       "text-summary",
-      "html"
+      "cobertura"
     ]
   },
   "prettier": {

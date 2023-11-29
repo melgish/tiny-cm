@@ -1,5 +1,8 @@
+.nyc_output
+.scannerwork
+.vscode
+coverage
 node_modules
 lib
-coverage
-.nyc_output
 data
+styles.json

@@ -3,18 +3,19 @@ FROM node:21-alpine AS base
 RUN mkdir -p /app/service /app/data/ \
  && chown -R node:node /app
 WORKDIR /app/service
-USER node:node
 
 # Install production dependencies.
-FROM base as deps
-COPY --chown=node:node package*.json ./
-RUN npm ci --omit=dev --omit=optional
+FROM base AS deps
+USER node:node
+COPY package*.json ./
+RUN npm ci --omit=dev --omit=optional --ignore-scripts
 
-FROM base as builder
+FROM base AS builder
 COPY . .
-RUN npm ci && npm run build
+RUN npm ci --ignore-scripts && npm run build
 
-FROM base as runner
-COPY --chown=node:node --from=deps /app/service ./
-COPY --chown=node:node --from=builder /app/service/lib/ ./lib
+FROM base AS runner
+USER node:node
+COPY --from=deps /app/service ./
+COPY --from=builder /app/service/lib/ ./lib
 CMD ["node", "./lib/app.js"]

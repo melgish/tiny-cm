@@ -35,8 +35,9 @@ describe('FileStore', () => {
     //
     // Pre-load it with data
     tmpDir = await mkdtemp(join(tmpdir(), 'tiny-cm-test'));
-    (contentPath = join(tmpDir, 'uuid812.txt')),
-      await writeFile(contentPath, 'THIS IS A TEST FILE', 'utf-8');
+    contentPath = join(tmpDir, 'uuid812.txt');
+
+    await writeFile(contentPath, 'THIS IS A TEST FILE', 'utf-8');
     await writeFile(
       join(tmpDir, 'metadata.json'),
       JSON.stringify({
