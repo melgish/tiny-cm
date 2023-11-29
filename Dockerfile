@@ -6,15 +6,15 @@ WORKDIR /app/service
 USER node:node
 
 # Install production dependencies.
-FROM base as deps
+FROM base AS deps
 COPY --chown=node:node package*.json ./
 RUN npm ci --omit=dev --omit=optional
 
-FROM base as builder
+FROM base AS builder
 COPY . .
 RUN npm ci && npm run build
 
-FROM base as runner
+FROM base AS runner
 COPY --chown=node:node --from=deps /app/service ./
 COPY --chown=node:node --from=builder /app/service/lib/ ./lib
 CMD ["node", "./lib/app.js"]
