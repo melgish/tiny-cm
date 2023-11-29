@@ -22,9 +22,9 @@ export const app = express();
 app.use(rateLimit({ windowMs: 1000 * 60, max: maxRequests }));
 app.use(loggerMiddleware);
 app.set('trust proxy', 'loopback, linklocal, uniquelocal');
-app.use(cors());
+app.use(cors({ origin: true }));
 app.use(compression());
-app.options('*', cors());
+app.use(cors({ origin: true }));
 app.use('/content', api(store));
 
 export const server = createServer(app);
