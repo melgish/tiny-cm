@@ -1,6 +1,6 @@
 {
   "name": "@njfiorello/tiny-cm",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "very simple cm for testing",
   "main": "lib/index.js",
   "private": true,
