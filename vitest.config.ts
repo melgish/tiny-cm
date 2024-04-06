@@ -1,4 +1,3 @@
-import { reporters } from 'mocha'
 import {defineConfig } from "vitest/config"
 
 let reporter = ["text-summary", "html"];
