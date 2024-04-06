@@ -30,11 +30,9 @@ app.use('/content', api(store));
 export const server = createServer(app);
 export const stop = async (): Promise<void> => {
   logger.info('Beginning shutdown.');
-  server.close(async (): Promise<void> => {
-    // Close the file store.
-    await store.flush();
-    logger.info('Shutdown complete.');
-  });
+  await new Promise(resolve => server.close(resolve));
+  await store.flush();
+  logger.info('Shutdown complete.');
 };
 
 export async function start(): Promise<void> {
@@ -49,10 +47,4 @@ export async function start(): Promise<void> {
   server.listen(port, () => {
     logger.info(`Listening on port ${port}`);
   });
-}
-
-// Only start when launched directly
-/* istanbul ignore if */
-if (require.main === module) {
-  start();
 }

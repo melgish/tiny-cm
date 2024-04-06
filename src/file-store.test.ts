@@ -1,17 +1,14 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { existsSync } from 'node:fs';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-
 import { Readable } from 'stream';
-
 import { logger } from './logger';
 import { Meta, MetaMap } from './meta';
-
 import { FileStore } from './file-store';
 
-import { expect } from 'chai';
-import { SinonSpy, SinonStub, spy, stub } from 'sinon';
+vi.mock('./logger');
 
 class TestFileStore extends FileStore {
   // Make public for testing updates
@@ -87,6 +84,7 @@ describe('FileStore', () => {
     beforeEach(() => {
       file = Readable.from(['test-string']);
     });
+
     describe('when save succeeds', () => {
       it('should return metadata', async () => {
         // create a file stream to read
@@ -98,6 +96,25 @@ describe('FileStore', () => {
         );
 
         expect(meta).to.exist;
+      });
+    });
+
+    describe('when save fails', () => {
+      it('should clean up incomplete file', async () => {
+        const pipe = file.pipe;
+        vi.spyOn(file, 'pipe').mockImplementation((...args: any[]): any => {
+          file.emit("error", new Error("kaboom"));
+        });
+
+        // create a file stream to read
+        const rs = await store.create(
+          file,
+          'test-string',
+          'utf-8',
+          'text/plain',
+        ).then(meta => "FAIL").catch(err => "OK");
+
+        expect(rs).toBe("OK");
       });
     });
   });
@@ -119,26 +136,16 @@ describe('FileStore', () => {
   });
 
   describe('flush', () => {
-    let error: SinonStub;
-    let save: SinonSpy;
-
     beforeEach(() => {
-      error = stub(logger, 'error');
-      save = spy(store, 'save');
+      vi.spyOn(store, 'save');
     });
-
-    afterEach(() => {
-      error.restore();
-      save.restore();
-    });
-
     describe('when save succeeds', () => {
       it('should create the file', async () => {
         await store.flush();
 
-        expect(save.called).to.be.true;
+        expect(store.save).toBeCalled();
         expect(existsSync(store.metaPath)).to.be.true;
-        expect(error.called).to.be.false;
+        expect(logger.error).not.toBeCalled();
       });
     });
 
@@ -147,11 +154,10 @@ describe('FileStore', () => {
       it('should log the failure', async () => {
         // hack the style into an invalid state
         store.metaPath = null!;
-
         await store.flush();
 
-        expect(save.called).to.be.true;
-        expect(error.called).to.be.true;
+        expect(store.save).toBeCalled();
+        expect(logger.error).toBeCalled();
       });
     });
   });
