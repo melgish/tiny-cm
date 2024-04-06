@@ -101,16 +101,16 @@ describe('FileStore', () => {
 
     describe('when save fails', () => {
       it('should clean up incomplete file', async () => {
-        const pipe = file.pipe;
-        vi.spyOn(file, 'pipe').mockImplementation((...args: any[]): any => {
+        vi.spyOn(file, 'pipe').mockImplementation((...args) => {
           file.emit('error', new Error('kaboom'));
+          return args[0];
         });
 
         // create a file stream to read
         const rs = await store
           .create(file, 'test-string', 'utf-8', 'text/plain')
-          .then((meta) => 'FAIL')
-          .catch((err) => 'OK');
+          .then(() => 'FAIL')
+          .catch(() => 'OK');
 
         expect(rs).toBe('OK');
       });
