@@ -1,10 +1,8 @@
 import { join, parse } from 'node:path';
 import { existsSync, createWriteStream } from 'node:fs';
 import { readFile, writeFile, unlink, mkdir } from 'node:fs/promises';
-
 import { v1 } from 'uuid';
 import { Meta, MetaMap } from './meta';
-
 import { logger } from './logger';
 
 export class FileStore {
@@ -89,7 +87,7 @@ export class FileStore {
       file.on('end', async () => resolve(this.update(meta)));
       // On error, clean up and reject.
       file.on('error', async (err) => {
-        await unlink(contentPath);
+        await unlink(contentPath).catch(() => void 0);
         reject(err);
       });
       file.pipe(createWriteStream(contentPath));

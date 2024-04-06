@@ -25,7 +25,7 @@ export const api = (store: FileStore): Router => {
   // Should return 400 for posts without a file.
   // Should return 201 for single file.
   // Should return 200 for multiple files.
-  route.post(`/`, async (req, res) => {
+  route.post(`/`, (req, res) => {
     const promises: Promise<Meta>[] = [];
     try {
       const bb = busboy({ headers: req.headers });

@@ -1,5 +1,4 @@
-import { expect } from 'chai';
-import { spy } from 'sinon';
+import { describe, expect, it, vi } from 'vitest';
 import { logger, loggerMiddleware, write } from './logger';
 
 describe('logger', () => {
@@ -12,13 +11,9 @@ describe('logger', () => {
 
   describe('write', () => {
     it('should log messages using logger.', () => {
-      const log = spy(logger, 'info');
-      try {
-        write('message');
-        expect(log.called).to.be.true;
-      } finally {
-        log.restore();
-      }
+      const log = vi.spyOn(logger, 'info');
+      write('message');
+      expect(log).toHaveBeenCalled();
     });
   });
 });
