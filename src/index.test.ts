@@ -1,10 +1,9 @@
-import { it, expect, vi } from "vitest";
-import { start } from "./app";
-import "./index";
+import { it, expect, vi } from 'vitest';
+import { start } from './app';
+import './index';
 
-vi.mock("./app");
+vi.mock('./app');
 
-it('should call start', () =>  {
+it('should call start', () => {
   expect(start).toBeCalled();
 });
-

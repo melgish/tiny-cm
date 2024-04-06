@@ -4,8 +4,8 @@ import { app, server, start, stop, store } from './app';
 vi.mock('./file-store');
 vi.mock('node:http', () => ({
   createServer: () => ({
-    close: vi.fn().mockImplementation(fn => fn()),
-    listen: vi.fn().mockImplementation((p, fn) => fn())
+    close: vi.fn().mockImplementation((fn) => fn()),
+    listen: vi.fn().mockImplementation((p, fn) => fn()),
   }),
 }));
 

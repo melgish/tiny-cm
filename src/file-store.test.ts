@@ -103,18 +103,16 @@ describe('FileStore', () => {
       it('should clean up incomplete file', async () => {
         const pipe = file.pipe;
         vi.spyOn(file, 'pipe').mockImplementation((...args: any[]): any => {
-          file.emit("error", new Error("kaboom"));
+          file.emit('error', new Error('kaboom'));
         });
 
         // create a file stream to read
-        const rs = await store.create(
-          file,
-          'test-string',
-          'utf-8',
-          'text/plain',
-        ).then(meta => "FAIL").catch(err => "OK");
+        const rs = await store
+          .create(file, 'test-string', 'utf-8', 'text/plain')
+          .then((meta) => 'FAIL')
+          .catch((err) => 'OK');
 
-        expect(rs).toBe("OK");
+        expect(rs).toBe('OK');
       });
     });
   });

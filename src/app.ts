@@ -30,7 +30,7 @@ app.use('/content', api(store));
 export const server = createServer(app);
 export const stop = async (): Promise<void> => {
   logger.info('Beginning shutdown.');
-  await new Promise(resolve => server.close(resolve));
+  await new Promise((resolve) => server.close(resolve));
   await store.flush();
   logger.info('Shutdown complete.');
 };
